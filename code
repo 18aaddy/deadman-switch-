@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SelfDestructContract {
+    address payable public owner;
+    address payable public presetAddress;
+    uint256 public lastAliveBlock;
+
+    constructor(address payable _presetAddress) {
+        owner = payable(msg.sender);
+        presetAddress = _presetAddress;
+        lastAliveBlock = block.number;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
+    }
+
+    modifier onlyAlive() {
+        require(block.number - lastAliveBlock >= 10, "Contract not alive");
+        _;
+    }
+
+    function stillAlive() external onlyOwner {
+        lastAliveBlock = block.number;
+    }
+
+    function selfDestruct() external onlyOwner onlyAlive {
+    presetAddress.transfer(address(this).balance);
+    }
+}
